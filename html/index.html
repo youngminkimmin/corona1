@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kakao Search</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700;900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/reset.css" />
+
+    <link rel="stylesheet" href="../css/layout.css" />
+    <script src="../js/gsap/gsap.min.js"></script>
+    <script src="../js/axios.min.js"></script>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>
+        <span class="main"> <strong>corona</strong></span>
+      </h1>
+      <div class="calender">
+        <div class="header">
+          <button class="prev">
+            <span class="material-icons"> arrow_back_ios </span>
+          </button>
+          <div class="monthBox">
+            <span class="year">2021</span>
+            <span class="month">12</span>
+          </div>
+          <button class="next">
+            <span class="material-icons"> arrow_forward_ios </span>
+          </button>
+        </div>
+        <div class="days">
+          <ul>
+            <li class="sun"><span>SUN</span></li>
+            <li><span>MON</span></li>
+            <li><span>TUE</span></li>
+            <li><span>WED</span></li>
+            <li><span>THU</span></li>
+            <li><span>FRI</span></li>
+            <li class="sat"><span>SAT</span></li>
+          </ul>
+        </div>
+        <div class="dates">
+          <ul>
+            <!-- <li><span>01</span></li>
+              <li><span>02</span></li>
+              <li><span>03</span></li>
+              <li><span>04</span></li>
+              <li><span>05</span></li>
+              <li><span>06</span></li>
+              <li><span>07</span></li> -->
+          </ul>
+        </div>
+      </div>
+      <div class="databox"></div>
+    </div>
+  </body>
+  <script>
+    const databox = document.querySelector(".databox");
+    const ul = document.createElement("ul");
+
+    const dateUL = document.querySelector(".calender .dates ul");
+    databox.appendChild(ul);
+
+    function showcoronaData(selectDay) {
+      axios
+        .get(
+          `http://openapi.data.go.kr/openapi/service/rest/Covid19/getCovid19SidoInfStateJson?ServiceKey=zjqDzPmKwxN1MgpOuA2HswkF1IwyqbbeIAnj1QhEId97f%2FEZbNtBVwChThtYMKKYQSjnUAqb0UeagczL%2F59c%2Bw%3D%3D&startCreateDT=${selectDay}&endCreateDT=${selectDay}&_Type=json`
+        )
+        .then(function (res) {
+          console.log(res.data.response.body.items.item);
+          const itemList = res.data.response.body.items.item;
+          let output = "";
+          itemList.forEach(function (item, idx) {
+            output += `<li><div class="gubun">${item.gubun}</div><div class="incDec">${item.incDec}</div></li>`;
+            //      console.log(item.gubun);
+            //      console.log(item.incDec);
+          });
+          ul.innerHTML = output;
+          gsap.from(".databox li", {
+            scale: 0,
+            ease: "power3",
+            stagger: 0.02,
+          });
+        });
+    }
+  </script>
+  <script>
+    const now = new Date(); // 오늘날짜
+    let pickedNow = new Date(); // 클릭했을때 넘어갈 날짜
+
+    let firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const leapYear = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const nonLeapYear = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let selectYear;
+    console.log(now.getDay(), "===", firstDay.getDay());
+
+    const btnNextMonth = document.querySelector(".calender .header .next");
+    const btnPrevMonth = document.querySelector(".calender .header .prev");
+
+    const txtYear = document.querySelector(".calender .header .year");
+    const txtMonth = document.querySelector(".calender .header .month");
+    btnPrevMonth.addEventListener("click", function () {
+      pickedNow = new Date(
+        pickedNow.getFullYear(),
+        pickedNow.getMonth() - 1,
+        1
+      );
+      makeCalender(pickedNow.getFullYear(), pickedNow.getMonth());
+    });
+    btnNextMonth.addEventListener("click", function () {
+      pickedNow = new Date(
+        pickedNow.getFullYear(),
+        pickedNow.getMonth() + 1,
+        1
+      );
+      //console.log(pickedNow);
+      makeCalender(pickedNow.getFullYear(), pickedNow.getMonth());
+    });
+
+    makeCalender(pickedNow.getFullYear(), pickedNow.getMonth());
+    function makeCalender(pYear, pMonth) {
+      let output = "";
+      let count = 1;
+      firstDay = new Date(pYear, pMonth, 1);
+      txtYear.textContent = firstDay.getFullYear();
+      txtMonth.textContent = addZero(firstDay.getMonth() + 1);
+      if (firstDay.getFullYear() % 4 === 0) {
+        if (firstDay.getFullYear() % 100 === 0) {
+          selectYear = nonLeapYear;
+        } else {
+          selectYear = leapYear;
+        }
+      } else {
+        selectYear = nonLeapYear;
+      }
+      if (firstDay.getFullYear() % 400 === 0) {
+        selectYear = leapYear;
+      }
+
+      for (let i = 0; i < 42; i++) {
+        if (i < firstDay.getDay()) {
+          //비워두기
+          output += `<li class="blank"><span></span></li>`;
+        } else {
+          if (
+            now.getDate() === count &&
+            now.getFullYear() === firstDay.getFullYear() &&
+            now.getMonth() === firstDay.getMonth()
+          ) {
+            output += `<li class="today" data-date="${count}" data-year="${firstDay.getFullYear()}" data-month="${
+              firstDay.getMonth() + 1
+            }"><span>${count}</span></li>`;
+          } else {
+            output += `<li data-date="${count}" data-year="${firstDay.getFullYear()}" data-month="${
+              firstDay.getMonth() + 1
+            }"><span>${count}</span></li>`;
+          }
+          count += 1;
+        }
+        if (count > selectYear[firstDay.getMonth()]) {
+          break;
+        }
+      }
+      dateUL.innerHTML = output;
+      gsap.from(".calender .dates li", {
+        scale: 0,
+        ease: "power3",
+        stagger: 0.02,
+      });
+      const dateLI = document.querySelectorAll(".calender .dates li");
+      let selectedDate;
+      dateLI.forEach(function (item, idx) {
+        item.addEventListener("click", function () {
+          const selectDay = `${item.dataset.year}${addZero(
+            item.dataset.month
+          )}${addZero(parseInt(item.dataset.date))}`;
+          if (selectedDate) {
+            selectedDate.classList.remove("on");
+          }
+          selectedDate = item;
+          selectedDate.classList.add("on");
+          showcoronaData(selectDay);
+        });
+      });
+    }
+
+    // for (let j = 0; j < 100; j++) {
+    //   if (j % 3 === 0) {
+    //     continue;
+    //   }
+    //   console.log(j);
+    // }
+
+    // const dateLI = document.querySelectorAll(".calender .dates li");
+    // dateLI.forEach(function (item, idx) {
+    //   item.addEventListener("click", function () {
+    //     //console.log(item.dataset.date);
+    //     const selectDay = `${item.dataset.year}${addZero(
+    //       item.dataset.month
+    //     )}${addZero(parseInt(item.dataset.date) - 1)}`;
+    //     console.log(selectDay);
+    //     showcoronaData(selectDay);
+    //   });
+    // });
+    function addZero(num) {
+      if (num < 10) {
+        return "0" + num;
+      } else {
+        return "" + num;
+      }
+    }
+    showcoronaData(
+      `${now.getFullYear()}${addZero(now.getMonth() + 1)}${addZero(
+        now.getDate()
+      )}`
+    );
+  </script>
+</html>
